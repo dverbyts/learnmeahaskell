@@ -4,6 +4,27 @@ import RotatedArray
 import qualified Data.Vector as V
 
 {---
+ | Test checking list input for valid sort order.  
+ ---}
+isValidInput_Cases = TestLabel "Tests for isValidInput" (
+    TestList [testValidEmpty, testCorrect, testIncorrect])
+
+testValidEmpty = TestCase $ assertEqual 
+  "Empty list evaluates as valid" 
+  (True)
+  (isValidInput [])
+
+testCorrect = TestCase $ assertEqual 
+  "Rotated/sorted input evaluates as valid"
+  ((True, True))
+  ((isValidInput [4, 1, 2, 3], isValidInput [1, 2, 3]))
+
+testIncorrect = TestCase $ assertEqual 
+  "Totally unsorted input evaluates as invalid"
+  (False)
+  (isValidInput [4, 2, 3, 1])
+
+{---
  | Test creation of RotatedArray from list.  
  ---}
 fromList_Cases = TestLabel "Tests for fromList" (
@@ -65,6 +86,7 @@ testGetUnsorted = TestCase $ assertEqual
 {---
  | Hook for running test suite.
  ---}
-main = runTestTT $ TestList [fromList_Cases, 
+main = runTestTT $ TestList [isValidInput_Cases,
+                             fromList_Cases, 
                              rotateBy_Cases, 
                              getRotation_Cases]

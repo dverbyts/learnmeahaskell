@@ -4,11 +4,17 @@ import qualified Data.Vector as V
 
 data RotatedArray = RotatedArray (V.Vector Int) deriving (Show, Eq)
 
+isValidInput :: [Int] -> Bool
+isValidInput [] = True
+isValidInput xs = snd (foldr fn (head xs, 0) xs) <= 1
+    where fn :: Int -> (Int, Int) -> (Int, Int)
+          fn = \x acc -> if fst acc <= x 
+                             then (x, snd acc) 
+                             else (x, 1 + snd acc)
+
 fromList :: Int -> [Int] -> RotatedArray
-fromList n xs = let srtd = sort xs
-                    fn   = \i -> srtd !! i
-                    vec  = V.generate (length xs) fn
-                in rotateBy n $ RotatedArray vec
+fromList n xs = rotateBy n $ RotatedArray $ V.fromList srtdxs
+    where srtdxs = if (isValidInput xs) then xs else sort xs
 
 rotateBy :: Int -> RotatedArray -> RotatedArray 
 rotateBy 0 x = x
