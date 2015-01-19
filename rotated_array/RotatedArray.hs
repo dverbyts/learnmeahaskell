@@ -1,26 +1,30 @@
 module RotatedArray where
-import qualified Data.List as List
+import Data.List (sort)
+import qualified Data.Vector as V
 
-data RotatedArray = RotatedArray [Int] deriving (Show, Eq)
+data RotatedArray = RotatedArray (V.Vector Int) deriving (Show, Eq)
 
 fromList :: Int -> [Int] -> RotatedArray
-fromList n xs = rotateBy n $ RotatedArray $ List.sort xs
+fromList n xs = let srtd = sort xs
+                    fn   = \i -> srtd !! i
+                    vec  = V.generate (length xs) fn
+                in rotateBy n $ RotatedArray vec
 
 rotateBy :: Int -> RotatedArray -> RotatedArray 
 rotateBy 0 x = x
-rotateBy _ orig@(RotatedArray []) = orig
-rotateBy n (RotatedArray xs) =
-    let len    = length xs
-        offset = len - (n `mod` len)
-    in RotatedArray $ (drop offset xs) ++ (take offset xs)    
+rotateBy n original@(RotatedArray xs)
+    | (V.null xs) = original
+    | otherwise = let len    = V.length xs
+                      offset = len - (n `mod` len)
+                  in RotatedArray $ (V.drop offset xs) V.++ (V.take offset xs)
 
 getRotation :: RotatedArray -> Int
-getRotation (RotatedArray []) = 0
-getRotation (RotatedArray xs)  
-    | firstElem <= last xs = 0
-    | firstElem <= midElem = mid + (getRotation $ RotatedArray (drop mid xs))
-    | otherwise            = getRotation $ RotatedArray (take mid xs)
-    where firstElem = head xs
-          mid       = length xs `div` 2
-          midElem   = xs !! max 0 (mid - 1)
+getRotation (RotatedArray xs) 
+    | (V.null xs)          = 0 
+    | fstElem <= V.last xs = 0
+    | fstElem <= midElem   = mid + (getRotation $ RotatedArray (V.drop mid xs))
+    | otherwise            = getRotation $ RotatedArray (V.take mid xs)
+    where fstElem = V.head xs
+          mid     = V.length xs `div` 2
+          midElem = xs V.! (max 0 (mid - 1))
 
