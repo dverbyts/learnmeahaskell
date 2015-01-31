@@ -5,9 +5,6 @@ import qualified Data.Map
 import qualified Data.List
 import qualified Data.Maybe
 
----------------------------------
--- Map containing transitions. --
----------------------------------
 transitions = Data.Map.fromList [
     ("0000", "0000"),
     ("0001", "1000"),
@@ -26,8 +23,6 @@ transitions = Data.Map.fromList [
     ("1110", "0111"),
     ("1111", "1111")
     ]
------
------
 
 ------------------------------          
 -- Pyramid reduction rules. --          
@@ -69,9 +64,7 @@ patternCollapse (Pyramid.Composite p1 p2 p3 p4)
                                            (Data.Maybe.fromJust sp4))
               else Nothing     
     where consts@(c1:c2:c3:c4:_) = map Pyramid.getConst [p1, p2, p3, p4]
------
------
-          
+        
 ------------------------------------------------------------
 -- Recursively define application of pyramid transitions. --
 ------------------------------------------------------------
@@ -120,8 +113,6 @@ innerTransition (Pyramid.Composite p1 p2 p3 p4) =
                        (innerTransition p2)
                        (innerTransition p3)
                        (innerTransition p4))
------
------
     
 ------------------------------------------------
 -- Helpers for IO application of transitions. --
@@ -146,6 +137,4 @@ returnSteps (Pyramid.Atomic c) outputList
 returnSteps pyramid outputList = 
     let (newStr, newPyr) = reportStep pyramid 
     in returnSteps newPyr $ outputList ++ [newStr]
------    
------
 
