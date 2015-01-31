@@ -17,21 +17,26 @@ data Pyramid
     = Atomic Cell.Cell
     | Composite Pyramid Pyramid Pyramid Pyramid 
     deriving (Eq, Show)
-                       
+
+-- Helper function to extract sub-ranges of values from a list.
+slice :: Int -> Int -> [a] -> [a]
+slice from to xs = take to (drop from xs)
+           
 -- Reports the total number of elements in a pyramid.
 getLength :: Pyramid -> Int
 getLength (Atomic c1) = 1
-getLength (Composite p1 p2 p3 p4) = 4 * (getLength p1)
+getLength (Composite p1 _ _ _) = 4 * (getLength p1)
 
 -- Reports the height (number of rows) in a pyramid.
 getHeight :: Pyramid -> Int
 getHeight (Atomic c1) = 1
-getHeight (Composite p1 p2 p3 p4) = 2 * (getHeight p1)
+getHeight (Composite p1 _ _ _) = 2 * (getHeight p1)
        
 -- Retrieves a row of Cell values from a pyramid, indexed 1 through
 -- the height of the pyramid. Reports the cells in a list.
 getRow :: Pyramid -> Int -> [Cell.Cell]
-getRow (Atomic c) row = [[c]] !! (row - 1)
+getRow (Atomic c) row = [[c]] !! (row - 1) -- this funny business is to let !!
+                                           -- generate index errors for us.
 getRow (Composite (Atomic c1) (Atomic c2) (Atomic c3) (Atomic c4)) row =
     [[c1], [c2, c3, c4]] !! (row - 1)
     
@@ -55,20 +60,16 @@ putRow (Atomic c) row values
     | otherwise = error "Only assign single value to first row of Atomic."
                   
 -- Place a row in a pyramid with 4 cells.
-putRow (Composite (Atomic c1) 
-                  (Atomic c2) 
-                  (Atomic c3) 
-                  (Atomic c4)) row values
+putRow (Composite (Atomic c1) (Atomic c2) (Atomic c3) (Atomic c4)) row values
     -- Inserting the top row.
-    | (row == 1) && (length values == 1) = (Composite (Atomic (values !! 0)) 
-                                                      (Atomic c2) 
-                                                      (Atomic c3) 
-                                                      (Atomic c4))
+    | (row == 1) && (length values == 1) = 
+        (Composite (Atomic (values !! 0)) (Atomic c2) (Atomic c3) (Atomic c4))
     -- Inserting the bottom row.
-    | (row == 2) && (length values == 3) = (Composite (Atomic c1) 
-                                                      (Atomic (values !! 0)) 
-                                                      (Atomic (values !! 1)) 
-                                                      (Atomic (values !! 2)))
+    | (row == 2) && (length values == 3) = 
+        (Composite (Atomic c1) 
+                   (Atomic (values !! 0)) 
+                   (Atomic (values !! 1)) 
+                   (Atomic (values !! 2)))
     | otherwise = error "Only assign single (row 1) or triple (row 2) values."
                   
 -- If putting a row in a composite pyramid, check if it's the upper half or the
@@ -80,16 +81,14 @@ putRow (Composite p1 p2 p3 p4) row values =
     in if row <= hh
         then Composite (putRow p1 row values) p2 p3 p4
              
-        -- Otherwise, calculate row offsets for three bottom subpyramids and     
-        -- and obtain the associated values for three further recursive row     
-        -- placements. Note: evil nested let statement. Candidate for refactor.
-        else let r        = row - hh     
-                 r'       = hh - r + 1
-                 sidesLen = length $ getRow p2 r
-                 middlLen = length $ getRow p3 r'
+        -- Otherwise, calculate row offsets for three bottom subpyramids.
+        else let r        = row - hh   -- row num to put for p2 & p4
+                 r'       = hh - r + 1 -- row num to put for p3
+                 sidesLen = length $ getRow p2 r  -- Len of values for p2 & p4
+                 middlLen = length $ getRow p3 r' -- Len of values for p3
                  p2vals   = take sidesLen values
-                 p3vals   = take middlLen (drop sidesLen values)
-                 p4vals   = take sidesLen (drop (sidesLen + middlLen) values)
+                 p3vals   = slice sidesLen middlLen values
+                 p4vals   = slice (sidesLen + middlLen) sidesLen values 
              in (Composite p1    
                            (putRow p2 r  p2vals)
                            (putRow p3 r' p3vals) 
@@ -112,15 +111,12 @@ getConst (Composite p1 p2 p3 p4) =
 -- Reader/Printer to convert to/from String. --
 -----------------------------------------------
 odds = [1,3..]  -- Odds, only permissible row lengths.
+
 isPowerOf :: Int -> Int -> Bool
 isPowerOf x num = num `elem` takeWhile (<= num) [x^n | n <- [0..]]
+
 isPowerOfTwo = isPowerOf 2
 isPowerOfFour = isPowerOf 4
-
-
--- Helper function to extract sub-ranges of values from a list.
-slice :: Int -> Int -> [a] -> [a]
-slice from to xs = take to (drop from xs)
 
 -- Given the binary string, return a list-of-lists, where each interior list
 -- represents a row of cells to be placed into a constructed pyramid.
@@ -129,9 +125,11 @@ parseRows binaryString
     -- If the input length is a power of four, proceed to parse it in
     -- segments with lengths corresponding to increasing odd numbers,
     -- so that the segments represent the rows to be placed.
-    | isPowerOfFour strLen  = 
-        let lineLengths = takeWhile sufficientSum odds
-            offsets = zip (scanl1 (+) ([0] ++ init lineLengths)) lineLengths
+    | isPowerOfFour sLen = 
+        -- lineLens will be a set of odd numbers (each a line length) 
+        -- offsets will be the (start, stop) index pairs for each line.
+        let lineLens = take (length $ takeWhile (<=sLen) $ scanl1 (+) odds) odds
+            offsets = zip (scanl1 (+) ([0] ++ init lineLens)) lineLens
             
         -- Reports the Cell values in order from the binary string, in the 
         -- segments needed for each pyramid row.
@@ -139,8 +137,7 @@ parseRows binaryString
                | (x,y) <- offsets] -- Reverse in the comprehension to simulate 
                                    -- reading from the right. 
     | otherwise = error "Input string length must be a power of 4."
-    where strLen = length binaryString
-          sufficientSum = \x -> strLen >= sum (takeWhile (<= x) odds)
+    where sLen = length binaryString
 
 -- Construct a Pyramid of all zeros for a given number of rows. This will be
 -- used to start off the process that recursively 'places' rows when reading
