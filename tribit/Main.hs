@@ -23,7 +23,7 @@ ghci_main :: String -> IO ()
 ghci_main inputStr = do
     let pyramid = Pyramid.makePyramid inputStr 
     let steps = Transitions.returnSteps pyramid [] 
-    mapM_ putStrLn $ Pyramid.printPyramid pyramid:steps
+    mapM_ putStrLn $ (Pyramid.printPyramid pyramid):steps
 
 main :: IO ()
 main = do
