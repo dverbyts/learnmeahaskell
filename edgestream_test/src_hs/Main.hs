@@ -6,8 +6,7 @@ import qualified PrepareOutput as PO
 
 main :: IO ()
 main = do
-    handledInputs       <- PI.handleInputs
-    let polynomials      = map P.makePolynomial handledInputs
+    polynomials         <- PI.handleInputs
     let pairsToMultiply  = zip (init polynomials) (tail polynomials) 
     let results          = map P.multiplyPair pairsToMultiply
 
