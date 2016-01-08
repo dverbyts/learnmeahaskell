@@ -62,9 +62,9 @@ showTerm (Term.Term s c 0 1) = (eFront ++ eTail, bFront ++ bTail)
 showTerm (Term.Term s c x 0) = (eFront ++ eTail, bFront ++ bTail)
     where (eFront, bFront) = showSign s
           expStr           = showExponent x
-          expBlank         = repBlank (length expBlank)
+          expBlank         = repBlank (length expStr)
           cString          = (showCoefficient c) ++ "x" ++ expBlank
-          eString          = repBlank (length cString) ++ expStr
+          eString          = repBlank (length cString - length expStr) ++ expStr
           (eTail, bTail)   = (eString, cString)
 
 showTerm (Term.Term s c 0 y) = (eFront ++ eTail, bFront ++ bTail)
@@ -72,7 +72,7 @@ showTerm (Term.Term s c 0 y) = (eFront ++ eTail, bFront ++ bTail)
           expStr           = showExponent y
           expBlank         = repBlank (length expStr)
           cString          = (showCoefficient c) ++ "y" ++ expBlank
-          eString          = repBlank (length cString) ++ expStr
+          eString          = repBlank (length cString - length expStr) ++ expStr
           (eTail, bTail)   = (eString, cString)
 
 showTerm (Term.Term s c x y) = (eFront ++ eTail, bFront ++ bTail)

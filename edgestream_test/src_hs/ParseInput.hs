@@ -27,24 +27,52 @@ parseLine s = inputTriples
           inputTriples = map parseTerm rawParsed
 
 parseTerm :: String -> Term.Term
-parseTerm s = Term.Term sign c xE yE
-    where negCoeff  = getSubmatch $ patternHelper "^-([0-9]*)" s
-          posCoeff  = getSubmatch $ patternHelper "^[+]?([0-9]*)" s
-          xExp      = getSubmatch $ patternHelper "x([0-9]*)" s
-          yExp      = getSubmatch $ patternHelper "y([0-9]*)" s
-          (sign, c) = case (negCoeff, posCoeff) of
-                         ("", c) -> (Term.Plus, (read c) :: Int)
-                         (c, "") -> (Term.Minus, (read c) :: Int)
-          xE        = if xExp == "" then 1 else (read xExp) :: Int
-          yE        = if yExp == "" then 1 else (read yExp) :: Int
+parseTerm s = Term.makeTerm coeff xE yE
+    where negCoeff  = getCoeffSubmatch $ negCoeff' s
+          posCoeff  = getCoeffSubmatch $ posCoeff' s
+          xExp      = getExponentSubmatch $ xExp' s
+          yExp      = getExponentSubmatch $ yExp' s
+          coeff     = if negCoeff == ""
+                          then read posCoeff :: Int
+                          else read negCoeff :: Int
+          xE        = read xExp :: Int
+          yE        = read yExp :: Int
 
 
 patternHelper :: String -> String -> [String]
 patternHelper pattern s = (RE.getAllTextSubmatches (s =~ pattern)) :: [String]
 
-getSubmatch :: [String] -> String
-getSubmatch [] = ""
-getSubmatch xs = last xs
+negCoeff' :: String -> [String]
+negCoeff' = patternHelper "^(-[0-9]*)[x,y]?"
+
+posCoeff' :: String -> [String]
+posCoeff' = patternHelper "^[+]?([0-9]*)[x,y]?"
+
+xExp' :: String -> [String]
+xExp'     = patternHelper "x([0-9]*)"
+
+yExp' :: String -> [String]
+yExp'     = patternHelper "y([0-9]*)"
+
+getExponentSubmatch :: [String] -> String
+getExponentSubmatch [] = "0"
+getExponentSubmatch xs = case xs of
+    ["", ""]  -> "0"
+    ["x", _]  -> "1"
+    ["y", _]  -> "1"
+    [_, s]    -> s
+
+getCoeffSubmatch :: [String] -> String
+getCoeffSubmatch [] = ""
+getCoeffSubmatch xs = case xs of
+    ["", ""]   -> ""
+    ["x", _]   -> "1"
+    ["y", _]   -> "1"
+    ["-x", _]  -> "-1"
+    ["-y", _]  -> "-1"
+    ["-1x", _] -> "-1"
+    ["-1y", _] -> "-1"
+    [_, s]     -> s
 
 
 

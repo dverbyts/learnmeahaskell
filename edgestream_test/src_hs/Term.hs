@@ -4,10 +4,10 @@ type Exponent    = Int
 type Coefficient = Int
 type InputTriple = (Coefficient, Exponent, Exponent)
 
-data Sign = Plus | Minus deriving (Eq)
+data Sign = Plus | Minus deriving (Eq, Show)
 
 -- Data structure to hold a single term.
-data Term = Term Sign Coefficient Exponent Exponent
+data Term = Term Sign Coefficient Exponent Exponent deriving (Show)
 
 isLike :: Term -> Term -> Bool
 isLike (Term _ _ x1 y1) (Term _ _ x2 y2)
