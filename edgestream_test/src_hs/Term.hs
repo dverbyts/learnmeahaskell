@@ -13,6 +13,10 @@ isLike (Term _ _ x1 y1) (Term _ _ x2 y2)
     | (x1 == x2) && (y1 == y2) = True
     | otherwise                = False
 
+nonZero :: Term -> Bool
+nonZero (Term _ 0 _ _) = False
+nonZero _              = True
+
 getSign :: Term -> Sign
 getSign (Term s _ _ _) = s
 

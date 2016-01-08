@@ -3,14 +3,13 @@ import qualified Term
 import qualified Polynomial
 import Data.List (intercalate)
 
-type SignString     = String
 type BaseString     = String
 type ExponentString = String
 
 repBlank :: Int -> String
 repBlank n = replicate n ' '
 
-showSign :: Term.Sign -> (String, String)
+showSign :: Term.Sign -> (ExponentString, BaseString)
 showSign Term.Plus  = ("   ", " + ")
 showSign Term.Minus = ("   ", " - ")
 
@@ -22,34 +21,25 @@ showExponent :: Term.Exponent -> String
 showExponent = showCoefficient
 
 showPolynomial :: Polynomial.Polynomial -> String
-showPolynomial [] = []
-showPolynomial
-showPolynomial p = fExp ++ rExp ++ "\n" ++ fBase ++ rBase ++ "\n"
-    where (sp:sps)      = Polynomial.collectLikeTerms p
-          (fExp, fBase) = showFirstTerm sp
-          rests         = map showTerm sps
-          rExp          = intercalate "" [rE | (rE, _) <- rests]
-          rBase         = intercalate "" [rB | (_, rB) <- rests]
+showPolynomial [] = " \n0\n"
+showPolynomial p = case (Polynomial.processTerms p) of
+    []       -> showPolynomial []
+    (sp:sps) -> printedLine
+        where (sp:sps)      = Polynomial.processTerms p
+              (fExp, fBase) = showFirstTerm sp
+              rests         = map showTerm sps
+              rExp          = intercalate "" $ map fst rests
+              rBase         = intercalate "" $ map snd rests
+              finalLine     = fExp ++ rExp ++ "\n" ++ fBase ++ rBase ++ "\n"
+              printedLine   = if finalLine == "\n\n" then " \n0\n" else finalLine
+
 
 printPolynomial :: Polynomial.Polynomial -> IO ()
 printPolynomial = putStr . showPolynomial
 
 
--- Helper function mainly for debugging and interactive printing.
-printTerm :: Term.Term -> IO ()
-printTerm t = do
-    let (exp, base) = showTerm t
-    putStrLn exp
-    putStrLn base
-
-
 showTerm :: Term.Term -> (ExponentString, BaseString)
-showTerm (Term.Term _ 0 0 0) = (eFront ++ eTail, bFront ++ bTail)
-    where (eFront, bFront) = showSign Term.Plus
-          (eTail, bTail)   = (" ", "0")
-
 showTerm (Term.Term _ 0 _ _) = ("", "")
-
 showTerm (Term.Term s 1 0 0) = (eFront ++ eTail, bFront ++ bTail)
     where (eFront, bFront) = showSign s
           (eTail, bTail)   = (" ", "1")
@@ -103,12 +93,20 @@ showTerm (Term.Term s c x y) = (eFront ++ eTail, bFront ++ bTail)
           eString          = expFrontBlanks ++ xExpStr ++ " " ++ yExpStr
           bString          = bStringFront ++ bStringBack
           (eTail, bTail)   = (eString, bString)
-
+----- End showTerm
 
 showFirstTerm :: Term.Term -> (ExponentString, BaseString)
-showFirstTerm term@(Term.Term s c x y) = (expSign ++ expRest, sign ++ rest)
-    where sign                  = if s == Term.Plus then "" else "-"
-          expSign               = if s == Term.Plus then "" else " " 
-          (expRest', baseRest') = showTerm term
-          rest                  = drop 3 $ baseRest'
-          expRest               = drop 3 $ expRest'
+showFirstTerm term@(Term.Term s c x y) 
+    | c == 0 = showTerm term
+    | otherwise = (expSign ++ expRest, sign ++ rest)
+        where sign                  = if s == Term.Plus then "" else "-"
+              expSign               = if s == Term.Plus then "" else " " 
+              (expRest', baseRest') = showTerm term
+              rest                  = drop 3 $ baseRest'
+              expRest               = drop 3 $ expRest'
+
+printTerm :: Term.Term -> IO ()
+printTerm t = do
+    let (exp, base) = showTerm t
+    putStrLn exp
+    putStrLn base

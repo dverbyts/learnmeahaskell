@@ -4,6 +4,9 @@ import qualified Term
 
 type Polynomial = [Term.Term]
 
+filterNonZero :: Polynomial -> Polynomial
+filterNonZero = filter Term.nonZero
+
 polynomialMultiply :: Polynomial -> Polynomial -> Polynomial
 polynomialMultiply [] _ = []
 polynomialMultiply _ [] = []
@@ -22,5 +25,8 @@ collectLikeTerms (t1:ts) = (collectMatchesToFirstTerm : collectMatchesInTail)
 collectLikeTerms' :: Polynomial -> Term.Term
 collectLikeTerms' []     = Term.Term Term.Plus 0 0 0
 collectLikeTerms' (t:ts) = foldl Term.termAdd t ts
+
+processTerms :: Polynomial -> Polynomial
+processTerms = collectLikeTerms . filterNonZero
 
 
