@@ -2,7 +2,7 @@ module Polynomial where
 import Term (isLike)
 import qualified Term
 
-type Polynomial = [Term.Term]
+type Polynomial  = [Term.Term]
 
 filterNonZero :: Polynomial -> Polynomial
 filterNonZero = filter Term.nonZero
@@ -13,6 +13,9 @@ polynomialMultiply _ [] = []
 polynomialMultiply (p1:p1s) p2s = multiplyFirst ++ multiplyRest
     where multiplyFirst = [Term.termMultiply p1 p2 | p2 <- p2s]
           multiplyRest  = polynomialMultiply p1s p2s
+
+multiplyPair :: (Polynomial, Polynomial) -> Polynomial
+multiplyPair (p1, p2) = polynomialMultiply p1 p2
 
 collectLikeTerms :: Polynomial -> Polynomial
 collectLikeTerms [] = []
@@ -29,4 +32,8 @@ collectLikeTerms' (t:ts) = foldl Term.termAdd t ts
 processTerms :: Polynomial -> Polynomial
 processTerms = collectLikeTerms . filterNonZero
 
+makePolynomial :: [Term.InputTriple] -> Polynomial
+makePolynomial = map Term.makeTermFromTriple
+
+-- TODO: add sorting by descending x and ascending y
 

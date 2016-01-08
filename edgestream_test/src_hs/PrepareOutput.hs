@@ -21,7 +21,7 @@ showExponent :: Term.Exponent -> String
 showExponent = showCoefficient
 
 showPolynomial :: Polynomial.Polynomial -> String
-showPolynomial [] = " \n0\n"
+showPolynomial [] = " \n0\n\n"
 showPolynomial p = case (Polynomial.processTerms p) of
     []       -> showPolynomial []
     (sp:sps) -> printedLine
@@ -30,13 +30,8 @@ showPolynomial p = case (Polynomial.processTerms p) of
               rests         = map showTerm sps
               rExp          = intercalate "" $ map fst rests
               rBase         = intercalate "" $ map snd rests
-              finalLine     = fExp ++ rExp ++ "\n" ++ fBase ++ rBase ++ "\n"
+              finalLine     = fExp ++ rExp ++ "\n" ++ fBase ++ rBase ++ "\n\n"
               printedLine   = if finalLine == "\n\n" then " \n0\n" else finalLine
-
-
-printPolynomial :: Polynomial.Polynomial -> IO ()
-printPolynomial = putStr . showPolynomial
-
 
 showTerm :: Term.Term -> (ExponentString, BaseString)
 showTerm (Term.Term _ 0 _ _) = ("", "")
@@ -110,3 +105,7 @@ printTerm t = do
     let (exp, base) = showTerm t
     putStrLn exp
     putStrLn base
+
+printPolynomial :: Polynomial.Polynomial -> IO ()
+printPolynomial = putStr . showPolynomial
+

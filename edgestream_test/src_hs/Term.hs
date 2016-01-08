@@ -2,6 +2,7 @@ module Term where
 
 type Exponent    = Int
 type Coefficient = Int
+type InputTriple = (Coefficient, Exponent, Exponent)
 
 data Sign = Plus | Minus deriving (Eq)
 
@@ -40,6 +41,9 @@ termMultiply (Term s1 c1 x1 y1) (Term s2 c2 x2 y2) = case (s1, s2) of
 makeTerm :: Int -> Int -> Int -> Term
 makeTerm c x y = Term.Term sign (abs c) x y
     where sign = if c < 0 then Minus else Plus 
+
+makeTermFromTriple :: InputTriple -> Term
+makeTermFromTriple (c, x, y) = makeTerm c x y
 
 
     
