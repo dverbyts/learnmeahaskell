@@ -20,7 +20,7 @@ collectLikeTerms (t1:ts) = (collectMatchesToFirstTerm : collectMatchesInTail)
           collectMatchesInTail      = collectLikeTerms notMatches 
 
 collectLikeTerms' :: Polynomial -> Term.Term
-collectLikeTerms' []     = Term.Term 0 0 0
-collectLikeTerms' (t:ts) = foldl Term.addCoefficients t ts
+collectLikeTerms' []     = Term.Term Term.Plus 0 0 0
+collectLikeTerms' (t:ts) = foldl Term.termAdd t ts
 
 

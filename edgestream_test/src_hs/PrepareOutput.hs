@@ -7,74 +7,29 @@ type SignString     = String
 type BaseString     = String
 type ExponentString = String
 
-showSign :: Int -> String
-showSign c = if c < 0 then "-" else "" 
+repBlank :: Int -> String
+repBlank n = replicate n ' '
 
-showModOne :: Int -> String
-showModOne 1 = "" 
-showModOne c 
-    | c < 0     = (showModOne . abs) c
-    | otherwise = show c
+showSign :: Term.Sign -> (String, String)
+showSign Term.Plus  = ("   ", " + ")
+showSign Term.Minus = ("   ", " - ")
 
-showTerm :: Term.Term -> (SignString, ExponentString, BaseString)
+showCoefficient :: Term.Coefficient -> String
+showCoefficient 1 = "" 
+showCoefficient c = show c
 
--- Case of printing zero.
-showTerm (Term.Term 0 _ _) = ("", "", "")
-
--- Case of printing single constants 1 / -1.
-showTerm (Term.Term    1 0 0) = ("", "", "1")
-showTerm (Term.Term (-1) 0 0) = ("-", "", "1")
-
--- Case of printing a non-one constant
-showTerm (Term.Term c 0 0) = (showSign c, "", showModOne c)
-
--- Case of first order terms
-showTerm (Term.Term c 1 1) = (showSign c, "", showModOne c ++ "xy")
-showTerm (Term.Term c 1 0) = (showSign c, "", showModOne c ++ "x")
-showTerm (Term.Term c 0 1) = (showSign c, "", showModOne c ++ "y")
-
--- Case of generic terms with only powers of x
-showTerm (Term.Term c x 0) = (sign, whitespace ++ sx, sc ++ "x")
-    where [sc, sx]   = map showModOne [c, x] 
-          sign       = showSign c
-          whitespace = replicate (length sign + length sc + 1) ' '
-
--- Case of generic terms with only powers of y
-showTerm (Term.Term c 0 y) = (sign, whitespace ++ sy, sc ++ "y")
-    where [sc, sy]   = map showModOne [c, y] 
-          sign       = showSign c
-          whitespace = replicate (length sign + length sc + 1) ' '
-
--- Case of fully generic terms.
-showTerm (Term.Term c x y) = (sign, exponentString, baseString)
-    where [sc, sx, sy]   = map showModOne [c, x, y]
-          sign           = showSign c
-          xWhitespace    = replicate (length sign + length sc + 1) ' '
-          yWhitespace    = " "
-          baseWhitespace = replicate (length sx) ' '
-          trailingWS     = replicate (length sy) ' '
-          baseString     = sc ++ "x" ++ baseWhitespace ++ "y" ++ trailingWS
-          exponentString = xWhitespace ++ sx ++ yWhitespace ++ sy
------ End showTerm
------
-
-
-assembleLine :: [(SignString, ExponentString, BaseString)] -> String
-assembleLine [] = ""
-assembleLine ((sign, exp, base):ts) = exponentStr ++ baseStr
-    where signedBases = [(if s == "-" then " - " else " + ") ++ b 
-                         | (s, _, b) <- ts, b /= ""]
-          signedExps  = [(if s == "-" then "  " else "   ") ++ e 
-                         | (s, e, b) <- ts, b /= ""]
-          tailOfBases = intercalate "" signedBases
-          tailOfExps  = intercalate "" signedExps 
-          headOfBases = sign ++ base
-          exponentStr = exp ++ tailOfExps ++ "\n"
-          baseStr     = headOfBases ++ tailOfBases ++ "\n"
-
+showExponent :: Term.Exponent -> String
+showExponent = showCoefficient
 
 showPolynomial :: Polynomial.Polynomial -> String
-showPolynomial p = assembleLine $ map showTerm p          
+showPolynomial [] = []
+showPolynomial
+showPolynomial p = fExp ++ rExp ++ "\n" ++ fBase ++ rBase ++ "\n"
+    where (sp:sps)      = Polynomial.collectLikeTerms p
+          (fExp, fBase) = showFirstTerm sp
+          rests         = map showTerm sps
+          rExp          = intercalate "" [rE | (rE, _) <- rests]
+          rBase         = intercalate "" [rB | (_, rB) <- rests]
 
 printPolynomial :: Polynomial.Polynomial -> IO ()
 printPolynomial = putStr . showPolynomial
@@ -83,6 +38,77 @@ printPolynomial = putStr . showPolynomial
 -- Helper function mainly for debugging and interactive printing.
 printTerm :: Term.Term -> IO ()
 printTerm t = do
-    let (sign, exp, base) = showTerm t
+    let (exp, base) = showTerm t
     putStrLn exp
-    putStrLn (sign ++ base)
+    putStrLn base
+
+
+showTerm :: Term.Term -> (ExponentString, BaseString)
+showTerm (Term.Term _ 0 0 0) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign Term.Plus
+          (eTail, bTail)   = (" ", "0")
+
+showTerm (Term.Term _ 0 _ _) = ("", "")
+
+showTerm (Term.Term s 1 0 0) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign s
+          (eTail, bTail)   = (" ", "1")
+
+showTerm (Term.Term s c 0 0) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign s
+          cString          = showCoefficient c
+          (eTail, bTail)   = (repBlank (length cString), cString)
+
+showTerm (Term.Term s c 1 1) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign s
+          cString          = (showCoefficient c) ++ "xy"
+          (eTail, bTail)   = (repBlank (length cString), cString)
+
+showTerm (Term.Term s c 1 0) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign s
+          cString          = (showCoefficient c) ++ "x"
+          (eTail, bTail)   = (repBlank (length cString), cString)
+
+showTerm (Term.Term s c 0 1) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign s
+          cString          = (showCoefficient c) ++ "y"
+          (eTail, bTail)   = (repBlank (length cString), cString)
+
+showTerm (Term.Term s c x 0) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign s
+          expStr           = showExponent x
+          expBlank         = repBlank (length expBlank)
+          cString          = (showCoefficient c) ++ "x" ++ expBlank
+          eString          = repBlank (length cString) ++ expStr
+          (eTail, bTail)   = (eString, cString)
+
+showTerm (Term.Term s c 0 y) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign s
+          expStr           = showExponent y
+          expBlank         = repBlank (length expStr)
+          cString          = (showCoefficient c) ++ "y" ++ expBlank
+          eString          = repBlank (length cString) ++ expStr
+          (eTail, bTail)   = (eString, cString)
+
+showTerm (Term.Term s c x y) = (eFront ++ eTail, bFront ++ bTail)
+    where (eFront, bFront) = showSign s
+          coeffStr         = showCoefficient c
+          bStringFront     = coeffStr ++ "x"
+          expFrontBlanks   = repBlank (length bStringFront)
+          xExpStr          = showExponent x
+          xExpBlank        = repBlank (length xExpStr)
+          yExpStr          = showExponent y
+          yExpBlank        = repBlank (length yExpStr)
+          bStringBack      = xExpBlank ++ "y" ++ yExpBlank
+          eString          = expFrontBlanks ++ xExpStr ++ " " ++ yExpStr
+          bString          = bStringFront ++ bStringBack
+          (eTail, bTail)   = (eString, bString)
+
+
+showFirstTerm :: Term.Term -> (ExponentString, BaseString)
+showFirstTerm term@(Term.Term s c x y) = (expSign ++ expRest, sign ++ rest)
+    where sign                  = if s == Term.Plus then "" else "-"
+          expSign               = if s == Term.Plus then "" else " " 
+          (expRest', baseRest') = showTerm term
+          rest                  = drop 3 $ baseRest'
+          expRest               = drop 3 $ expRest'
