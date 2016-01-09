@@ -2,7 +2,6 @@ module Term where
 
 type Exponent    = Int
 type Coefficient = Int
-type InputTriple = (Coefficient, Exponent, Exponent)
 
 data Sign = Plus | Minus deriving (Eq, Show)
 
@@ -42,9 +41,15 @@ makeTerm :: Int -> Int -> Int -> Term
 makeTerm c x y = Term.Term sign (abs c) x y
     where sign = if c < 0 then Minus else Plus 
 
-makeTermFromTriple :: InputTriple -> Term
-makeTermFromTriple (c, x, y) = makeTerm c x y
+sortTerms :: Term -> Term -> Ordering
+sortTerms (Term s1 c1 x1 y1) (Term s2 c2 x2 y2)
+    | x1 < x2 = GT
+    | x1 > x2 = LT
+    | otherwise = compareYs y1 y2
 
-
-    
+compareYs :: Exponent -> Exponent -> Ordering
+compareYs y1 y2 
+    | y1 < y2   = LT
+    | y1 == y2  = EQ
+    | otherwise = GT   
  

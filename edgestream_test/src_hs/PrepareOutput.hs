@@ -1,6 +1,8 @@
 module PrepareOutput where
+
 import qualified Term
 import qualified Polynomial
+
 import Data.List (intercalate)
 
 type BaseString     = String
@@ -22,7 +24,7 @@ showExponent = showCoefficient
 
 showPolynomial :: Polynomial.Polynomial -> String
 showPolynomial [] = " \n0\n\n"
-showPolynomial p = case (Polynomial.processTerms p) of
+showPolynomial p  = case (Polynomial.processTerms p) of
     []       -> showPolynomial []
     (sp:sps) -> printedLine
         where (sp:sps)      = Polynomial.processTerms p

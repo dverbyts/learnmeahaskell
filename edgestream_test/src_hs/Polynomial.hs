@@ -1,5 +1,7 @@
 module Polynomial where
+
 import Term (isLike)
+import Data.List (sortBy)
 import qualified Term
 
 type Polynomial  = [Term.Term]
@@ -14,8 +16,9 @@ polynomialMultiply (p1:p1s) p2s = multiplyFirst ++ multiplyRest
     where multiplyFirst = [Term.termMultiply p1 p2 | p2 <- p2s]
           multiplyRest  = polynomialMultiply p1s p2s
 
-multiplyPair :: (Polynomial, Polynomial) -> Polynomial
-multiplyPair (p1, p2) = polynomialMultiply p1 p2
+multiplyPair :: [Polynomial] -> Polynomial
+multiplyPair [p1, p2] = processTerms $ polynomialMultiply p1 p2
+multiplyPair _        = error "multiplyPair can only process 2-element List."
 
 collectLikeTerms :: Polynomial -> Polynomial
 collectLikeTerms [] = []
@@ -30,10 +33,5 @@ collectLikeTerms' []     = Term.Term Term.Plus 0 0 0
 collectLikeTerms' (t:ts) = foldl Term.termAdd t ts
 
 processTerms :: Polynomial -> Polynomial
-processTerms = collectLikeTerms . filterNonZero
-
-makePolynomial :: [Term.InputTriple] -> Polynomial
-makePolynomial = map Term.makeTermFromTriple
-
--- TODO: add sorting by descending x and ascending y
+processTerms = (sortBy Term.sortTerms) . collectLikeTerms . filterNonZero
 
