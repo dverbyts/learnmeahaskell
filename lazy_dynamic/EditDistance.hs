@@ -54,7 +54,7 @@ basicEditDistance a b = d m n
  | by more robust Array indexing (!). The arrays are also set to be 1-indexed
  | which very slightly tweaks the formulas for reading from them.
  --}
-basicEditDistance :: String -> String -> Int
+betterEditDistance :: String -> String -> Int
 betterEditDistance a b = d m n
   where (m, n) = (length a, length b)
         a'     = A.listArray (1, m) a
