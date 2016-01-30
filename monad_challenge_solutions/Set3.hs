@@ -19,30 +19,33 @@ allCards [] _ = []
 allCards _ [] = []
 allCards (x:xs) ys = (map (Card x) ys) ++ (allCards xs ys) 
 
-allPerms :: (a -> b -> c) -> [a] -> [b] -> [c]
-allPerms _ [] _ = []
-allPerms _ _ [] = []
-allPerms f (x:xs) ys = (map (f x) ys) ++ (allPerms f xs ys)
+allCombs :: (a -> b -> c) -> [a] -> [b] -> [c]
+allCombs _ [] _ = []
+allCombs _ _ [] = []
+allCombs f (x:xs) ys = (map (f x) ys) ++ (allCombs f xs ys)
 
-allPairs2 = allPerms (,)
-allCards2 = allPerms Card
+allPairs2 :: [Int] -> [String] -> [(Int, String)]
+allPairs2 = allCombs (,)
 
-allPerms3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
-allPerms3 _ [] _ _ = []
-allPerms3 _ _ [] _ = []
-allPerms3 _ _ _ [] = []
-allPerms3 f (x:xs) ys zs = 
+allCards2 :: [Int] -> [String] -> [Card]
+allCards2 = allCombs Card
+
+allCombs3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
+allCombs3 _ [] _ _ = []
+allCombs3 _ _ [] _ = []
+allCombs3 _ _ _ [] = []
+allCombs3 f (x:xs) ys zs = 
     concat (map (\g -> map g zs) (map (f x) ys)) ++ 
-    (allPerms3 f xs ys zs)
+    (allCombs3 f xs ys zs)
 
-permStep :: [a -> b] -> [a] -> [b]
-permStep [] _ = []
-permStep _ [] = []
-permStep (f:fs) as = (map f as) ++ (permStep fs as)
+combStep :: [a -> b] -> [a] -> [b]
+combStep [] _ = []
+combStep _ [] = []
+combStep (f:fs) as = (map f as) ++ (combStep fs as)
 
-allPerms' :: (a -> b -> c) -> [a] -> [b] -> [c]
-allPerms' f as bs = (map f as) `permStep` bs
+allCombs' :: (a -> b -> c) -> [a] -> [b] -> [c]
+allCombs' f as bs = (map f as) `combStep` bs
 
-allPerms3' :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
-allPerms3' f as bs cs = (map f as) `permStep` bs `permStep` cs
+allCombs3' :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
+allCombs3' f as bs cs = (map f as) `combStep` bs `combStep` cs
 
