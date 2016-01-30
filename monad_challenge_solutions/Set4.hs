@@ -71,14 +71,14 @@ liftM f ma =
    ma `bind` \a ->
    return $ f a
 
--- generalization of generalB, yLink, and allPerms
+-- generalization of generalB, yLink, and allCombs
 liftM2 :: (Monad m) => (a -> b -> c) -> m a -> m b -> m c
 liftM2 f ma mb = 
     ma `bind` \a -> 
     mb `bind` \b -> 
     return $ f a b
 
--- generalization of allPerms3
+-- generalization of allCombs3
 liftM3 :: Monad m => (a -> b -> c -> d) -> m a -> m b -> m c -> m d
 liftM3 f ma mb mc = 
     ma `bind` \a ->
@@ -99,7 +99,7 @@ sequence (g:gs) = liftM2 (:) g (sequence gs)
 join :: Monad m => m (m a) -> m a
 join mma = mma `bind` id
 
--- generalization of permStep
+-- generalization of combStep
 -- also equal to `liftM2 id`
 ap :: Monad m => m (a -> b) -> m a -> m b
 ap mf ma = 
@@ -225,11 +225,11 @@ allPairs = liftM2 (,)
 allCards :: [Int] -> [String] -> [Card]
 allCards = liftM2 Card
 
-allPerms :: (a -> b -> c) -> [a] -> [b] -> [c]
-allPerms f as bs = (return f) `ap` as `ap` bs
+allCombs :: (a -> b -> c) -> [a] -> [b] -> [c]
+allCombs f as bs = (return f) `ap` as `ap` bs
 
-allPerms3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
-allPerms3 f as bs cs = (return f) `ap` as `ap` bs `ap` cs
+allCombs3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
+allCombs3 f as bs cs = (return f) `ap` as `ap` bs `ap` cs
 
 
 
