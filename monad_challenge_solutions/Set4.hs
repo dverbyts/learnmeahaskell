@@ -205,25 +205,16 @@ addSalaries2 sals name1 name2 = liftM2 (+) s1 s2
           s2 = lookupMay name2 sals
 
 tailProd :: Num a => [a] -> Maybe a
-tailProd a = (tailMay a) `bind` (return . product)
+tailProd = (liftM product) . tailMay
 
 tailSum :: Num a => [a] -> Maybe a
-tailSum a = (tailMay a) `bind` (return . sum)
-
-transMaybe :: (a -> Maybe b) -> (b -> c) -> a -> Maybe c
-transMaybe mayF f a = (mayF a) `bind` (return . f)
-
-tailProd2 :: Num a => [a] -> Maybe a
-tailProd2 = transMaybe tailMay product
-
-tailSum2 :: Num a => [a] -> Maybe a
-tailSum2 = transMaybe tailMay sum
+tailSum = (liftM sum) . tailMay
 
 tailMin :: Ord a => [a] -> Maybe a
-tailMin = join . (transMaybe tailMay minimumMay)
+tailMin = join . (liftM minimumMay) . tailMay
 
 tailMax :: Ord a => [a] -> Maybe a
-tailMax = join . (transMaybe tailMay maximumMay)
+tailMax = join . (liftM maximumMay) . tailMay
 
 {---
  | Reimplementation of Set3 exercises
