@@ -61,7 +61,7 @@ hanoi4' :: Integer -> Peg -> Peg -> Peg -> Peg -> [Move]
 hanoi4' n a b c d
     | n <= 2    = hanoi n a b c
     | otherwise = moveTopKToD ++ moveBottom ++ moveTopKToB
-        where k           = n - (round . sqrt . fromIntegral) n
+        where k           = n `div` 2
               moveTopKToD = hanoi4' k a d b c
               moveBottom  = hanoi  (n - k) a b c
               moveTopKToB = hanoi4' k d b a c
